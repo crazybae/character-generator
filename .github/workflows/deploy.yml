@@ -19,7 +19,11 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "VITE_CHARACTER_SERVER=https://character-gen.interverse.one" > .env
+          cat << EOF > .env
+          VITE_CHARACTER_SERVER=https://character-gen.interverse.one
+          # VITE_CHARACTER_SERVER=http://5.9.112.16:17001
+          # VITE_CHARACTER_SERVER=http://localhost:17001
+          EOF
 
       - name: Install dependencies
         run: npm ci
