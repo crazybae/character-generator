@@ -49,7 +49,7 @@
 
   async function pollForImage(id) {
     let attempts = 0;
-    const maxAttempts = 30;
+    const maxAttempts = 300;
 
     while (attempts < maxAttempts) {
       // Get generated image
