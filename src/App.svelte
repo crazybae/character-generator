@@ -2,10 +2,19 @@
   import {onMount} from "svelte";
 
   let prompt = "";
+  let player_id = "";
+  let style = "Pixar anime"; // 기본값 설정
   let character = null;
   let imageUrl = null;
   let loading = false;
   let error = null;
+
+  const styles = [
+    "Pixar anime",
+    "DC Comics anime",
+    "Subculture anime",
+    "Realistic",
+  ];
 
   const CHARACTER_SERVER =
     import.meta.env.VITE_CHARACTER_SERVER || "http://localhost:18002";
@@ -13,6 +22,11 @@
   async function generateCharacter() {
     if (!prompt.trim()) {
       error = "Please enter a character description";
+      return;
+    }
+
+    if (!player_id.trim()) {
+      error = "Please enter a player ID";
       return;
     }
 
@@ -28,7 +42,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({prompt}),
+        body: JSON.stringify({player_id, prompt, style}),
       });
 
       if (!response.ok) {
@@ -39,7 +53,7 @@
       const data = await response.json();
       character = data.character;
 
-      pollForImage(data.image_req_id);
+      pollForImage(player_id, data.character_id);
     } catch (e) {
       error = e.message;
     } finally {
@@ -47,18 +61,27 @@
     }
   }
 
-  async function pollForImage(id) {
+  async function pollForImage(player_id, character_id) {
     let attempts = 0;
     const maxAttempts = 300;
 
     while (attempts < maxAttempts) {
       // Get generated image
-      const imageResponse = await fetch(`${CHARACTER_SERVER}/api/image/${id}`);
+      const imageResponse = await fetch(
+        `${CHARACTER_SERVER}/api/image/${player_id}/${character_id}`
+      );
       if (imageResponse.ok) {
-        const blob = await imageResponse.blob();
-        imageUrl = URL.createObjectURL(blob);
-        loading = false;
-        break;
+        const data = await imageResponse.json();
+
+        if (data.images && data.images.base) {
+          imageUrl = data.images.base;
+          loading = false;
+          break;
+        } else {
+          error = "Image URL not found in response";
+          loading = false;
+          break;
+        }
       }
 
       if (imageResponse.status !== 425) {
@@ -77,6 +100,17 @@
   <h1>Character Generator</h1>
 
   <div class="input-section">
+    <input
+      type="text"
+      bind:value={player_id}
+      placeholder="Enter your player ID"
+      class="player-id-input"
+    />
+    <select bind:value={style} class="style-select">
+      {#each styles as s}
+        <option value={s}>{s}</option>
+      {/each}
+    </select>
     <textarea
       bind:value={prompt}
       placeholder="Describe your character (e.g., a young wizard with blue eyes and long white hair)"
@@ -150,58 +184,100 @@
 </main>
 
 <style>
+  :global(body) {
+    background-color: #1a1a2e;
+    color: #e6e6e6;
+    font-family: "Arial", sans-serif;
+  }
+
   main {
     max-width: 800px;
     margin: 0 auto;
     padding: 2rem;
+    background-color: #16213e;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   }
 
   h1 {
     text-align: center;
-    color: #333;
+    color: #e94560;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   }
 
   .input-section {
     margin: 2rem 0;
+    background-color: #0f3460;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
+  .player-id-input,
+  .style-select,
   textarea {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.8rem;
     margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 2px solid #e94560;
+    border-radius: 6px;
     font-size: 1rem;
+    background-color: #1a1a2e;
+    color: #e6e6e6;
+    transition: all 0.3s ease;
+  }
+
+  .player-id-input:focus,
+  .style-select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
   }
 
   button {
-    background-color: #4caf50;
+    background-color: #e94560;
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.8rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+
+  button:hover {
+    background-color: #ff6b6b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(233, 69, 96, 0.3);
   }
 
   button:disabled {
-    background-color: #cccccc;
+    background-color: #4a4a4a;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 
   .error {
-    color: red;
+    color: #ff6b6b;
     margin: 1rem 0;
     padding: 1rem;
-    background-color: #ffebee;
-    border-radius: 4px;
+    background-color: rgba(233, 69, 96, 0.1);
+    border-radius: 6px;
+    border-left: 4px solid #e94560;
   }
 
   .character-section {
     margin-top: 2rem;
-    padding: 1rem;
-    background-color: #f5f5f5;
-    border-radius: 4px;
+    padding: 2rem;
+    background-color: #0f3460;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   .character-details {
@@ -214,16 +290,24 @@
   .character-image img {
     width: 100%;
     max-width: 400px;
-    border-radius: 4px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
   .character-info {
     padding: 1rem;
   }
 
-  h2,
+  h2 {
+    color: #e94560;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
   h3 {
-    color: #333;
+    color: #e94560;
+    font-size: 1.4rem;
+    margin: 1.5rem 0 1rem;
   }
 
   ul {
@@ -232,12 +316,19 @@
   }
 
   li {
-    margin: 0.5rem 0;
+    margin: 0.8rem 0;
+    padding: 0.5rem;
+    background-color: rgba(26, 26, 46, 0.5);
+    border-radius: 4px;
+  }
+
+  li strong {
+    color: #e94560;
   }
 
   .spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top-color: #2563eb;
+    border: 4px solid rgba(233, 69, 96, 0.1);
+    border-top-color: #e94560;
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -248,6 +339,21 @@
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .character-details {
+      grid-template-columns: 1fr;
+    }
+
+    main {
+      padding: 1rem;
+    }
+
+    .input-section,
+    .character-section {
+      padding: 1rem;
     }
   }
 </style>
