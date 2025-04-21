@@ -3,17 +3,18 @@
 
   let prompt = "";
   let player_id = "";
-  let style = "Pixar anime"; // 기본값 설정
+  let style = "illustration"; // 기본값 설정
   let character = null;
   let imageUrl = null;
   let loading = false;
   let error = null;
 
   const styles = [
-    "Pixar anime",
-    "DC Comics anime",
-    "Subculture anime",
-    "Realistic",
+    "illustration",
+    "realistic",
+    "anime",
+    "3d",
+    "American comic",
   ];
 
   const CHARACTER_SERVER =
