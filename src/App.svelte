@@ -9,13 +9,7 @@
   let loading = false;
   let error = null;
 
-  const styles = [
-    "illustration",
-    "realistic",
-    "anime",
-    "3d",
-    "American comic",
-  ];
+  const styles = ["illustration", "realistic", "anime", "3d", "American comic"];
 
   const CHARACTER_SERVER =
     import.meta.env.VITE_CHARACTER_SERVER || "http://localhost:18002";
@@ -145,39 +139,15 @@
         <div class="character-info">
           <h3>Description</h3>
           <p>{character.character_desc}</p>
+          <h3>Background</h3>
+          <p>{character.character_back}</p>
+          <h3>Introduction</h3>
+          <p>{character.character_introduction_line}</p>
 
-          <h3>Appearance</h3>
-          <ul>
-            <li>
-              <strong>Gender:</strong>
-              {character.character_appearance.gender}
-            </li>
-            <li><strong>Age:</strong> {character.character_appearance.age}</li>
-            <li>
-              <strong>Face:</strong>
-              {character.character_appearance.face}
-            </li>
-            <li>
-              <strong>Hair:</strong>
-              {character.character_appearance.hair}
-            </li>
-            <li>
-              <strong>Clothing:</strong>
-              {character.character_appearance.cloth}
-            </li>
-            <li>
-              <strong>Shoes:</strong>
-              {character.character_appearance.shoes}
-            </li>
-            <li>
-              <strong>Expression:</strong>
-              {character.character_appearance.expression}
-            </li>
-            <li>
-              <strong>World View:</strong>
-              {character.character_appearance.world_view}
-            </li>
-          </ul>
+          <h3>World View</h3>
+          <p>{character.character_appearance.world_view}</p>
+          <h3>Weapon</h3>
+          <p>{character.character_appearance.weapon}</p>
         </div>
       </div>
     </div>
