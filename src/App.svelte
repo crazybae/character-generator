@@ -9,7 +9,7 @@
   let loading = false;
   let error = null;
 
-  const styles = ["illustration", "realistic", "anime", "3d", "American comic"];
+  const styles = ["illustration", "anime", "3d", "American comic"];
 
   const CHARACTER_SERVER =
     import.meta.env.VITE_CHARACTER_SERVER || "http://localhost:18002";
